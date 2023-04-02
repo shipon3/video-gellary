@@ -1,12 +1,36 @@
-import React from "react";
+import React, { useEffect } from "react";
 import RelatedVideo from "./RelatedVideo";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchRelatedVideos } from "../../features/relatedVideos/relatedVideosSlice";
+import Loading from "../ui/Loading";
 
-const RelatedVideoList = () => {
+const RelatedVideoList = ({ currentVideoId, tags }) => {
+	const { relatedVideos, isLoading, isError, error } = useSelector(
+		(state) => state.relatedVideo
+	);
+	const dispatch = useDispatch();
+	useEffect(() => {
+		dispatch(fetchRelatedVideos({ tags, id: currentVideoId }));
+	}, [dispatch, tags, currentVideoId]);
+
+	let content = null;
+	if (isLoading) content = <Loading />;
+	if (!isLoading && isError)
+		content = <div className="w-full flex flex-row gap-2 mb-4">{error}</div>;
+	if (!isLoading && !isError && relatedVideos?.length === 0)
+		content = (
+			<div className="w-full flex flex-row gap-2 mb-4">
+				Related Video Not Found
+			</div>
+		);
+	if (!isLoading && !isError && relatedVideos?.length > 0)
+		content = relatedVideos.map((video, index) => {
+			return <RelatedVideo key={index} video={video} />;
+		});
+
 	return (
 		<div className="col-span-full lg:col-auto max-h-[570px] overflow-y-auto">
-			<div className="w-full flex flex-row gap-2 mb-4">
-				<RelatedVideo />
-			</div>
+			{content}
 		</div>
 	);
 };
